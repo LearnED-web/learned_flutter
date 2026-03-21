@@ -110,6 +110,15 @@ class StudentProfileScreen extends ConsumerWidget {
                       context.push(AppRoutes.studentChangePassword);
                     },
                   ),
+                  _buildSettingItem(
+                    icon: Icons.delete_forever_outlined,
+                    title: 'Delete Account',
+                    titleColor: Colors.red,
+                    iconColor: Colors.red,
+                    onTap: () {
+                      context.push(AppRoutes.studentDeleteAccount);
+                    },
+                  ),
                   // _buildSettingItem(
                   //   icon: Icons.notifications_none,
                   //   title: 'Notification Settings',
@@ -258,15 +267,21 @@ class StudentProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingItem({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? titleColor,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: AppColors.primary),
+        child: Icon(icon, color: iconColor ?? AppColors.primary),
       ),
-      title: Text(title),
+      title: Text(title, style: TextStyle(color: titleColor)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
     );

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../routes/app_routes.dart';
 import '../services/teacher_service.dart';
 import 'edit_teacher_profile_screen.dart';
 import 'change_password_screen.dart';
@@ -186,6 +187,13 @@ class _TeacherProfileContentState extends State<TeacherProfileContent> {
               _buildSectionTitle('Account Settings'),
               _buildSettingItem(icon: Icons.edit_outlined, title: 'Edit Profile', onTap: _navigateToEditProfile),
               _buildSettingItem(icon: Icons.lock_outline, title: 'Change Password', onTap: _navigateToChangePassword),
+              _buildSettingItem(
+                icon: Icons.delete_forever_outlined,
+                title: 'Delete Account',
+                iconColor: Colors.red,
+                titleColor: Colors.red,
+                onTap: () => context.push(AppRoutes.teacherDeleteAccount),
+              ),
               // _buildSettingItem(
               //   icon: Icons.notifications_none,
               //   title: 'Notification Settings',
@@ -347,15 +355,21 @@ class _TeacherProfileContentState extends State<TeacherProfileContent> {
     );
   }
 
-  Widget _buildSettingItem({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? titleColor,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: AppColors.primary),
+        child: Icon(icon, color: iconColor ?? AppColors.primary),
       ),
-      title: Text(title),
+      title: Text(title, style: TextStyle(color: titleColor)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
     );

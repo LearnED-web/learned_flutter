@@ -18,6 +18,7 @@ import 'package:learned_flutter/features/student/screens/classroom_home_screen.d
 import 'package:learned_flutter/features/student/screens/classroom_assignments_screen.dart';
 import 'package:learned_flutter/features/student/screens/student_profile_screen.dart';
 import 'package:learned_flutter/features/student/screens/edit_profile_screen.dart';
+import 'package:learned_flutter/features/student/screens/delete_account_confirmation_screen.dart';
 import 'package:learned_flutter/features/student/screens/change_password_screen.dart';
 import 'package:learned_flutter/features/student/screens/personal_info_screen.dart';
 import 'package:learned_flutter/features/student/screens/my_classes_screen.dart';
@@ -276,6 +277,12 @@ final router = GoRouter(
               path: 'edit',
               pageBuilder: (context, state) => MaterialPage(key: state.pageKey, child: const EditProfileScreen()),
             ),
+            // Delete Account
+            GoRoute(
+              path: 'delete-account',
+              pageBuilder: (context, state) =>
+                  MaterialPage(key: state.pageKey, child: const DeleteAccountConfirmationScreen()),
+            ),
           ],
         ),
         // Change Password
@@ -409,6 +416,12 @@ final router = GoRouter(
         GoRoute(
           path: 'dashboard',
           pageBuilder: (context, state) => MaterialPage(key: state.pageKey, child: const TeacherDashboardScreen()),
+        ),
+        // Delete Account
+        GoRoute(
+          path: 'delete-account',
+          pageBuilder: (context, state) =>
+              MaterialPage(key: state.pageKey, child: const DeleteAccountConfirmationScreen()),
         ),
         // Classrooms
         GoRoute(

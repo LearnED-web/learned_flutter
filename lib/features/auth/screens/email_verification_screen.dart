@@ -102,16 +102,9 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Cancel Verification?'),
-              content: const Text('You need to verify your email to continue. Do you want to go back to login?'),
+              content: const Text('You need to verify your email to continue.'),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Stay Here')),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.go('/login');
-                  },
-                  child: const Text('Back to Login'),
-                ),
               ],
             ),
           );
@@ -252,15 +245,6 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                   ),
 
                   const SizedBox(height: 24),
-
-                  // Back to Login
-                  TextButton(
-                    onPressed: () => context.go('/login'),
-                    child: Text(
-                      'Back to Login',
-                      style: GoogleFonts.poppins(color: Colors.grey, fontWeight: FontWeight.w500),
-                    ),
-                  ),
                 ],
               ),
             ),

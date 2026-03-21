@@ -39,6 +39,32 @@ class _SplashScreenState extends State<SplashScreen> {
     // Debug print to see authentication state
 
     if (user != null && session != null) {
+      // Block access for deletion-requested or inactive accounts.
+      try {
+        final userRow = await Supabase.instance.client
+            .from('users')
+            .select('is_active, deletion_status')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        final isActive = userRow?['is_active'] as bool? ?? true;
+        final deletionStatus = (userRow?['deletion_status'] ?? 'active').toString();
+
+        if (!isActive || deletionStatus != 'active') {
+          await Supabase.instance.client.auth.signOut();
+          if (mounted) {
+            context.go('/welcome');
+          }
+          return;
+        }
+      } catch (_) {
+        await Supabase.instance.client.auth.signOut();
+        if (mounted) {
+          context.go('/welcome');
+        }
+        return;
+      }
+
       // In debug mode, print current user info and try to fix user type
       if (const bool.fromEnvironment('dart.vm.product') == false) {
         await UserTypeFixHelper.printCurrentUserInfo();

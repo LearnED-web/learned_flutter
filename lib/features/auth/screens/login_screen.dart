@@ -51,18 +51,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     String errorMessage = 'An error occurred during login';
 
     if (error is AuthException) {
-      switch (error.statusCode) {
-        case '400':
-          errorMessage = 'Invalid email or password';
-          break;
-        case '422':
-          errorMessage = 'Invalid email format';
-          break;
-        case '429':
-          errorMessage = 'Too many attempts. Please try again later.';
-          break;
-        default:
-          errorMessage = error.message;
+      final normalizedMessage = error.message.toLowerCase();
+
+      if (normalizedMessage.contains('email not confirmed') ||
+          normalizedMessage.contains('confirm your email') ||
+          normalizedMessage.contains('not confirmed')) {
+        errorMessage = 'Please verify your email before logging in.';
+      } else {
+        switch (error.statusCode) {
+          case '400':
+            errorMessage = 'Invalid email or password';
+            break;
+          case '422':
+            errorMessage = 'Invalid email format';
+            break;
+          case '429':
+            errorMessage = 'Too many attempts. Please try again later.';
+            break;
+          default:
+            errorMessage = error.message;
+        }
       }
     } else if (error is Exception) {
       errorMessage = error.toString().replaceAll('Exception: ', '');
@@ -71,13 +79,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _showErrorSnackBar(errorMessage);
   }
 
+  bool _isEmailNotConfirmedError(AuthException error) {
+    final normalizedMessage = error.message.toLowerCase();
+    return normalizedMessage.contains('email not confirmed') ||
+        normalizedMessage.contains('confirm your email') ||
+        normalizedMessage.contains('not confirmed');
+  }
+
+  Future<void> _redirectToEmailVerification(String email) async {
+    final supabase = Supabase.instance.client;
+
+    try {
+      await supabase.auth.resend(type: OtpType.signup, email: email);
+    } catch (_) {
+      // Even if resend fails, route user to verification so they can retry.
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please verify your email before logging in. A verification code has been sent.'),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 6),
+      ),
+    );
+
+    context.go('/verify-email?email=${Uri.encodeComponent(email)}');
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
+    final email = _emailController.text.trim();
+
     try {
-      final email = _emailController.text.trim();
       final password = _passwordController.text;
 
       // Sign in with Supabase
@@ -89,9 +128,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Check email_verified field from database
       final supabase = Supabase.instance.client;
-      final userData = await supabase.from('users').select('email_verified').eq('id', response.user!.id).single();
+      final userData = await supabase
+          .from('users')
+          .select('email_verified, is_active, deletion_status')
+          .eq('id', response.user!.id)
+          .single();
 
       final isEmailVerified = userData['email_verified'] as bool? ?? false;
+      final isActive = userData['is_active'] as bool? ?? true;
+      final deletionStatus = (userData['deletion_status'] ?? 'active').toString();
+
+      if (!isActive || deletionStatus != 'active') {
+        await supabase.auth.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This account is deactivated due to a deletion request.'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
 
       if (!isEmailVerified) {
         // Email not verified - resend verification code and redirect
@@ -143,6 +202,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       }
     } catch (e) {
+      if (e is AuthException && _isEmailNotConfirmedError(e)) {
+        await _redirectToEmailVerification(email);
+        return;
+      }
+
       _handleAuthError(e);
     } finally {
       if (mounted) {

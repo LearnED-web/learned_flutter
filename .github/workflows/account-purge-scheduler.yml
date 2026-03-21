@@ -1,0 +1,51 @@
+name: Account Purge Scheduler
+
+on:
+  schedule:
+    - cron: '15 2 * * *' # Daily at 02:15 UTC
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Batch size for purge processing'
+        required: false
+        default: '50'
+
+jobs:
+  run-purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine limit
+        id: params
+        run: |
+          if [ -n "${{ github.event.inputs.limit }}" ]; then
+            echo "limit=${{ github.event.inputs.limit }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "limit=50" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Invoke purge endpoint
+        env:
+          PURGE_ENDPOINT: ${{ secrets.SUPABASE_PURGE_ENDPOINT }}
+          CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
+          LIMIT: ${{ steps.params.outputs.limit }}
+        run: |
+          if [ -z "$PURGE_ENDPOINT" ]; then
+            echo "SUPABASE_PURGE_ENDPOINT secret is missing" >&2
+            exit 1
+          fi
+          if [ -z "$CRON_SHARED_SECRET" ]; then
+            echo "CRON_SHARED_SECRET secret is missing" >&2
+            exit 1
+          fi
+
+          echo "Calling purge endpoint with limit=$LIMIT"
+          response=$(curl -sS -X POST "$PURGE_ENDPOINT" \
+            -H "Authorization: Bearer $CRON_SHARED_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "{\"limit\":$LIMIT}")
+
+          echo "Response: $response"
+          echo "$response" | grep -q '"success":true' || {
+            echo "Purge endpoint did not return success=true" >&2
+            exit 1
+          }

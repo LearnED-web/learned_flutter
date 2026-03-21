@@ -1,6 +1,20 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.account_deletion_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  requested_by uuid NOT NULL,
+  user_type character varying,
+  request_source character varying DEFAULT 'in_app'::character varying,
+  reason text,
+  status character varying NOT NULL DEFAULT 'accepted'::character varying,
+  requested_at timestamp with time zone NOT NULL DEFAULT now(),
+  retention_until timestamp with time zone NOT NULL,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  CONSTRAINT account_deletion_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT account_deletion_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
 CREATE TABLE public.admin_activities (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   admin_id uuid NOT NULL,
@@ -368,9 +382,15 @@ CREATE TABLE public.users (
   country character varying,
   postal_code character varying,
   is_active boolean DEFAULT true,
+  deletion_status character varying DEFAULT 'active'::character varying,
+  deletion_requested_at timestamp with time zone,
+  scheduled_purge_at timestamp with time zone,
+  deleted_at timestamp with time zone,
+  deletion_reason text,
   email_verified boolean DEFAULT false,
   email_confirmed_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT users_deletion_status_check CHECK ((deletion_status)::text = ANY ((ARRAY['active'::character varying, 'requested'::character varying, 'purged'::character varying])::text[])),
   CONSTRAINT users_pkey PRIMARY KEY (id)
 );

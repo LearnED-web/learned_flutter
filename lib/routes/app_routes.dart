@@ -24,6 +24,7 @@ class AppRoutes {
   static const String studentProgress = '$student/progress';
   static const String studentSettings = '$student/settings';
   static const String studentChangePassword = '$student/change-password';
+  static const String studentDeleteAccount = '$student/profile/delete-account';
   static const String studentNotifications = '$student/notifications';
   static const String studentHelp = '$student/help';
   static const String studentSessionJoin = '$student/session/join';
@@ -34,6 +35,7 @@ class AppRoutes {
   // Teacher routes
   static const String teacher = '/teacher';
   static const String teacherDashboard = '$teacher/dashboard';
+  static const String teacherDeleteAccount = '$teacher/delete-account';
   static const String teacherClasses = '$teacher/classes';
   static const String teacherStudents = '$teacher/students';
   static const String teacherSchedule = '$teacher/schedule';
