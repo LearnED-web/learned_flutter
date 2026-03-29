@@ -8,7 +8,7 @@ plugins {
 import java.util.Properties
 
 android {
-    namespace = "com.learned.app"
+    namespace = "in.learnedtech"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
