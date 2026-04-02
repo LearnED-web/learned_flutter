@@ -25,22 +25,17 @@ jobs:
 
       - name: Invoke purge endpoint
         env:
-          PURGE_ENDPOINT: ${{ secrets.SUPABASE_PURGE_ENDPOINT }}
-          CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           LIMIT: ${{ steps.params.outputs.limit }}
         run: |
-          if [ -z "$PURGE_ENDPOINT" ]; then
-            echo "SUPABASE_PURGE_ENDPOINT secret is missing" >&2
-            exit 1
-          fi
-          if [ -z "$CRON_SHARED_SECRET" ]; then
-            echo "CRON_SHARED_SECRET secret is missing" >&2
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "SUPABASE_SERVICE_ROLE_KEY secret is missing" >&2
             exit 1
           fi
 
           echo "Calling purge endpoint with limit=$LIMIT"
-          response=$(curl -sS -X POST "$PURGE_ENDPOINT" \
-            -H "Authorization: Bearer $CRON_SHARED_SECRET" \
+          response=$(curl -sS -X POST "https://ugphaeiqbfejnzpiqdty.supabase.co/functions/v1/process-due-account-purges" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \
             -d "{\"limit\":$LIMIT}")
 
